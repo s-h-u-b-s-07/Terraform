@@ -1,0 +1,152 @@
+CREDENTIALS.tf
+
+provider "aws" { profile = "default" }
+
+
+
+----------------------------------------------------------------------------------
+
+
+MAIN.tf
+
+
+
+
+resource "aws_vpc" "Main" {                
+   cidr_block       = "10.0.0.0/16"     
+   instance_tenancy = "default"
+   tags = {
+      Name = "Main"
+     }
+ }
+ 
+ resource "aws_internet_gateway" "IGW" {    
+    vpc_id =  aws_vpc.Main.id 
+    tags = {
+       Name = "IGW"
+      }
+ }
+ 
+ resource "aws_subnet" "publicsubnets" {    
+   vpc_id =  aws_vpc.Main.id
+   cidr_block = "10.0.1.0/24"
+
+   availability_zone = "us-east-1a"
+   tags = {
+      Name = "publicsubnets"
+     }
+ }
+                   
+ resource "aws_subnet" "privatesubnets" {
+   vpc_id =  aws_vpc.Main.id
+   cidr_block = "10.0.2.0/24"
+   availability_zone = "us-east-1b"
+   tags = {
+      Name = "privatesubnets"
+     }
+ }
+ 
+ resource "aws_route_table" "PublicRT" {    
+    vpc_id =  aws_vpc.Main.id
+    tags = {
+       Name = "PublicRT"
+      }
+         route {
+    cidr_block = "0.0.0.0/0"               
+    gateway_id = aws_internet_gateway.IGW.id
+    }
+ }
+ 
+ resource "aws_route_table" "PrivateRT" {    
+   vpc_id = aws_vpc.Main.id
+   tags = { 
+      Name = "PrivateRT"
+    }
+        route {
+   cidr_block = "0.0.0.0/0"             
+   nat_gateway_id = aws_nat_gateway.NATgw.id
+   }
+ }
+ 
+ resource "aws_route_table_association" "PublicRTassociation" {
+    subnet_id = aws_subnet.publicsubnets.id
+    route_table_id = aws_route_table.PublicRT.id
+ }
+ 
+ resource "aws_route_table_association" "PrivateRTassociation" {
+    subnet_id = aws_subnet.privatesubnets.id
+    route_table_id = aws_route_table.PrivateRT.id
+ }
+ resource "aws_eip" "nateIP" {
+   vpc   = true
+ }
+ 
+ resource "aws_nat_gateway" "NATgw" {
+   allocation_id = aws_eip.nateIP.id
+   subnet_id = aws_subnet.publicsubnets.id
+   tags = {
+      Name = "NATgw"
+     }
+ }
+
+
+
+
+--------------------------------------------------------------------------------------
+
+
+Network.tf
+
+
+resource "aws_security_group" "httpssh" {
+    vpc_id = aws_vpc.Main.id
+    
+    egress {
+        from_port = 0
+        to_port = 0
+        protocol = -1
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    ingress {
+        from_port = 22
+        to_port = 22
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+        from_port = 80
+        to_port = 80
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+    tags = {
+        Name = "httpssh"
+    }
+}
+
+resource "aws_instance" "public" {
+  ami                         = "ami-04505e74c0741db8d"
+  associate_public_ip_address = "true"
+  instance_type               = "t2.micro"
+  key_name                    = "Aws-demo"
+  vpc_security_group_ids      = [aws_security_group.httpssh.id]
+  subnet_id                   = aws_subnet.publicsubnets.id
+
+  tags = {
+    Name = "public"
+  }
+}
+
+resource "aws_instance" "private" {
+  ami                         = "ami-04505e74c0741db8d"
+  associate_public_ip_address = "false"
+  instance_type               = "t2.micro"
+  key_name                    = "Aws-demo"
+  vpc_security_group_ids      = [aws_security_group.httpssh.id]
+  subnet_id                   = aws_subnet.privatesubnets.id
+
+  tags = {
+    Name = "private"
+  }
+}

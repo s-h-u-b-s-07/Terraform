@@ -1,0 +1,54 @@
+step 1 
+
+
+how to create IAM user
+steps- 1 go to on AWS Management Console
+           2 search IAM
+           3 select user from dashboard of left side
+           4 & Add User
+           5 (remember to copy the acces key , secret key & also to download the .csv file ) 
+
+
+
+step 2
+
+sudo apt install unzip
+
+{install aws cli}
+
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+unzip awscliv2.zip
+
+sudo ./aws/install
+
+which aws
+
+
+step 3
+
+
+mkdir terraform
+ 
+ls
+  (aws awscliv2.zip  terraform)
+
+
+cd terraform
+
+
+INSTALL TERRAFORM
+
+
+wget https://releases.hashicorp.com/terraform/1.1.7/terraform_1.1.7_linux_amd64.zip
+
+sudo apt install zip -y
+
+sudo unzip terraform_1.1.7_linux_amd64.zip
+
+sudo mv terraform /usr/local/bin/
+
+terraform version
+
+
