@@ -1,11 +1,3 @@
-credentials.tf
-
-provider "aws" { profile = "default" }
-
-------------------------------------------------------------------
-
-Main.tf
-
 resource "aws_db_instance" "default" {
   allocated_storage    = 10
   engine               = "mysql"

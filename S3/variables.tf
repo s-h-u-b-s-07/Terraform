@@ -1,18 +1,3 @@
-Main.tf
-
-provider "aws" { profile = "default" }
-
-resource "aws_s3_bucket" "my-s3-bucket" {
-  bucket_prefix = var.bucket_prefix
-  
-  tags = var.tags
-}
-
--------------------------------------------------------
-
-variables.tf
-
-
 variable "bucket_prefix" {
     type        = string
     description = "Creates a unique bucket name beginning with the specified prefix. with bucket."
